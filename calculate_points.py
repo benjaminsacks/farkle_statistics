@@ -92,7 +92,8 @@ def calculate_points(roll):
         points += 50 * counts[5]
         dice_remaining -= counts[5]
 
-    if dice_remaining == 0: return points, 6
+    if points == 0: return 0, 0
+    elif dice_remaining == 0: return points, 6
     else: return points, dice_remaining
 
 if __name__ == "__main__":
