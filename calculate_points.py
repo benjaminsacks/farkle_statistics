@@ -1,14 +1,17 @@
 import numpy as np
+from itertools import combinations
 
 
 def calculate_max_points(roll):
     roll = np.array(roll).astype(int)
+    num_dice = len(roll)
+
     counts = np.zeros(7)
     raw_counts = np.bincount(roll)
     counts[: len(raw_counts)] += raw_counts
 
     points = 0
-    dice_remaining = 6
+    dice_remaining = num_dice
 
     # Check for six of a kind
     for i in range(1, 7):
@@ -41,7 +44,10 @@ def calculate_max_points(roll):
                 points += 50
                 dice_remaining = 6
 
-            return points, dice_remaining
+            if dice_remaining == 0:
+                return points, 6
+            else:
+                return points, dice_remaining
 
     # Check for four of a kind
     for i in range(1, 7):
@@ -107,9 +113,23 @@ def calculate_max_points(roll):
         return points, dice_remaining
 
 
+def calculate_possible_points(roll):
+    point_options = set()
+
+    for d in range(len(roll)):
+        for r in set(combinations(roll, d + 1)):
+            max_points, dice_remaining = calculate_max_points(r)
+            # dice_remaining += len(roll) - len(r) - 1
+            point_options.add((max_points, dice_remaining))
+
+    return point_options
+
+
 if __name__ == "__main__":
-    roll = [1, 1, 1, 1, 1, 1]
+    roll = [1, 1, 1, 1, 2, 2]
     points, dice_remaining = calculate_max_points(roll)
     print(roll)
     print("Maximum points:", points)
     print("Dice remaining:", dice_remaining)
+
+    print(calculate_possible_points(roll))
