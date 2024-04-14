@@ -119,17 +119,25 @@ def calculate_possible_points(roll):
     for d in range(len(roll)):
         for r in set(combinations(roll, d + 1)):
             max_points, dice_remaining = calculate_max_points(r)
-            # dice_remaining += len(roll) - len(r) - 1
-            point_options.add((max_points, dice_remaining))
+            if max_points == 0:
+                continue
+            if len(r) == len(roll):
+                point_options.add((max_points, dice_remaining))
+            else:
+                if dice_remaining == 6:
+                    dice_remaining = 0
+                point_options.add((max_points, len(roll) - len(r) + dice_remaining))
 
     return point_options
 
 
 if __name__ == "__main__":
+    # roll = [2, 2, 3, 3, 4, 6]
     roll = [1, 1, 1, 1, 2, 2]
+    # roll = [1, 2, 5]
     points, dice_remaining = calculate_max_points(roll)
     print(roll)
     print("Maximum points:", points)
     print("Dice remaining:", dice_remaining)
 
-    print(calculate_possible_points(roll))
+    print(sorted(list(calculate_possible_points(roll))))
