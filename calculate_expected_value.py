@@ -2,7 +2,7 @@ import pandas as pd
 from calculate_points import calculate_possible_points
 
 
-def select_max_points(possible_points, ev_base, current_points=0):
+def select_max_points(possible_points, ev_base, round_points):
     if len(possible_points) == 0:
         return False, 0
 
@@ -16,13 +16,13 @@ def select_max_points(possible_points, ev_base, current_points=0):
             max_roll = ev_roll
 
     reroll = False
-    if ev_base[selected_remaining_dice] > current_points + selected_points:
+    if ev_base[selected_remaining_dice] > round_points + selected_points:
         reroll = True
-        current_points += max_roll
+        round_points += max_roll
     else:
-        current_points += selected_points
+        round_points += selected_points
 
-    return reroll, current_points, selected_points, selected_remaining_dice
+    return selected_points, selected_remaining_dice, reroll, round_points
 
 
 if __name__ == "__main__":
@@ -55,6 +55,7 @@ if __name__ == "__main__":
             #     print(roll, end="\t")
             #     print(select_max_points(calculate_possible_points(roll), ev_base))
 
+            # TODO : Fix syntax to match new select_max_points
             ev_l2[d] += (
                 r.iloc[-1]
                 * select_max_points(calculate_possible_points(roll), ev_base)[1]
@@ -75,6 +76,7 @@ if __name__ == "__main__":
             #     print(roll, end="\t")
             #     print(select_max_points(calculate_possible_points(roll), ev_base))
 
+            # TODO : Fix syntax to match new select_max_points
             ev_l3[d] += (
                 r.iloc[-1]
                 * select_max_points(calculate_possible_points(roll), ev_l2)[1]
