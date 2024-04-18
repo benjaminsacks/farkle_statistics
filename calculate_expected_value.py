@@ -2,27 +2,35 @@ import pandas as pd
 from calculate_points import calculate_possible_points
 
 
-def select_max_points(possible_points, ev_base, round_points):
-    if len(possible_points) == 0:
-        return False, 0
+def select_max_points(possible_points, expected_values, round_points):
+    if len(possible_points) == 0: # if Farkle
+        return 0, 0, False, 0
 
     max_roll = 0
     for points, remaining_dice in possible_points:
-        ev_roll = points + ev_base[f"\u03bc{remaining_dice}"]
+        ev_roll = points + expected_values[remaining_dice]
 
         if ev_roll > max_roll:
             selected_points = points
             selected_remaining_dice = remaining_dice
             max_roll = ev_roll
 
-    reroll = False
-    if ev_base[f"\u03bc{selected_remaining_dice}"] > round_points + selected_points:
+    if expected_values[selected_remaining_dice] > round_points + selected_points:
         reroll = True
         round_points += max_roll
     else:
+        reroll = False
         round_points += selected_points
 
     return selected_points, selected_remaining_dice, reroll, round_points
+
+def check_all_subrolls(roll, depth):
+    if calculate_possible_points(roll)[0] == 0:
+        return
+    
+    for r in calculate_possible_points(roll):
+        pass
+    pass
 
 
 if __name__ == "__main__":
@@ -51,36 +59,23 @@ if __name__ == "__main__":
         for _, r in rolls.iterrows():
             roll = list(r.iloc[:-3])
 
-            # if d == 1:
-            #     print(roll, end="\t")
-            #     print(select_max_points(calculate_possible_points(roll), ev_base))
-
-            # TODO : Fix syntax to match new select_max_points
             ev_l2[d] += (
                 r.iloc[-1]
-                * select_max_points(calculate_possible_points(roll), ev_base)[1]
+                * select_max_points(calculate_possible_points(roll), ev_base, 0)[3]
             )
 
         print(f"E({d}) = " + str(round(ev_l2[d], 3)))
     print()
 
+    # "Infinite" Rolls (max_depth)
+    max_depth = 2
 
-    # Next Next Next Roll
-    ev_l3 = {i: 0 for i in range(1, 7)}
+    dice_rolls = {}
+    for d in range(1, 7):
+        dice_rolls[d] = pd.read_csv(f"rolls\\{d}_dice_rolls.csv")
+
+    ev_optimal = {i: 0 for i in range(1, 7)}
     for d in range(1, 7):
         rolls = pd.read_csv(f"rolls\\{d}_dice_rolls.csv")
         for _, r in rolls.iterrows():
             roll = list(r.iloc[:-3])
-
-            # if d == 1:
-            #     print(roll, end="\t")
-            #     print(select_max_points(calculate_possible_points(roll), ev_base))
-
-            # TODO : Fix syntax to match new select_max_points
-            ev_l3[d] += (
-                r.iloc[-1]
-                * select_max_points(calculate_possible_points(roll), ev_l2)[1]
-            )
-
-        print(f"E({d}) = " + str(round(ev_l3[d], 3)))
-    print()

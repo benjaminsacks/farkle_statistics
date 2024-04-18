@@ -2,7 +2,7 @@ import numpy as np
 from itertools import combinations
 
 
-def calculate_max_points(roll):
+def calculate_max_points(roll) -> tuple[int, int]:
     roll = np.array(roll).astype(int)
     num_dice = len(roll)
 
@@ -114,27 +114,30 @@ def calculate_max_points(roll):
 
 
 def calculate_possible_points(roll):
-    point_options = set()
+    point_options = {}
 
     for d in range(len(roll)):
         for r in set(combinations(roll, d + 1)):
             max_points, dice_remaining = calculate_max_points(r)
             if max_points == 0:
                 continue
-            if len(r) == len(roll):
-                point_options.add((max_points, dice_remaining))
+            if dice_remaining == 6 and len(r) < len(roll):
+                dice_remaining = 0
+            
+            if max_points not in point_options:
+                point_options[int(max_points)] = len(roll) - len(r) + dice_remaining
             else:
-                if dice_remaining == 6:
-                    dice_remaining = 0
-                point_options.add((max_points, len(roll) - len(r) + dice_remaining))
+                point_options[max_points] = max(
+                    point_options[max_points], (len(roll) - len(r) + dice_remaining)
+                )
 
-    return point_options
+    return [(key, value) for key, value in point_options.items()]
 
 
 if __name__ == "__main__":
     # roll = [2, 2, 3, 3, 4, 6]
-    roll = [1, 1, 1, 1, 2, 2]
-    # roll = [1, 2, 5]
+    roll = [1, 1, 1, 2, 2, 2]
+    # roll = [1, 5, 5]
     points, dice_remaining = calculate_max_points(roll)
     print(roll)
     print("Maximum points:", points)

@@ -7,7 +7,7 @@ from calculate_expected_value import select_max_points
 from tqdm import tqdm
 
 if __name__ == "__main__":
-    m = 100  # Number of entries in 'Expected Value' dataframe
+    m = 20  # Number of entries in 'Expected Value' dataframe
     n = 1_000  # Number of simulations per dice
     layer = -1
 
@@ -59,7 +59,7 @@ if __name__ == "__main__":
             print(f"\u03bc{d} = " + str(point_sum / n))
 
     if layer == -1:
-        ev_df = pd.DataFrame(columns=[f"\u03bc{d}" for d in range(1, 7)])
+        ev_df = pd.DataFrame(columns=list(range(1, 7)))
 
         ev_row = []
         for d in range(1, 7):
@@ -77,28 +77,15 @@ if __name__ == "__main__":
                         reroll = True
                         num_dice = d
 
-                        #
-                        # c = 0
-                        # print_str = ""
-                        #
                         while reroll:
                             roll = np.random.choice(6, num_dice) + np.ones(num_dice)
-                            #
-                            # c += 1
-                            # print_str += "Roll: " + str(roll) + "\n"
-                            #
                             if calculate_max_points(roll)[0] == 0:  # If farkle
                                 round_points = 0
-                                #
-                                # print_str += "\tFarkle!\n\n"
-                                # if c > 3:
-                                #     print(print_str)
-                                #
                                 break
 
                             possible_points = calculate_possible_points(roll)
                             roll_choice = select_max_points(
-                                possible_points, ev_df.loc[i-1], round_points
+                                possible_points, ev_df.loc[i - 1], round_points
                             )  # Optimal
 
                             round_points += roll_choice[
@@ -106,16 +93,11 @@ if __name__ == "__main__":
                             ]  # Add selected points to round total
                             num_dice = roll_choice[1]
                             reroll = roll_choice[2]
-                            #
-                            # print_str += "\t" + str(roll_choice) + "\n"
-                            # if not reroll and c > 3:
-                            #     print(print_str)
-                            #
 
                         point_sum += round_points
 
                     ev_row += [point_sum / n]
                     pbar.update(1)
                 ev_df.loc[i] = ev_row
-        
-        ev_df.to_csv('expected_values.csv', index=False)
+
+        ev_df.to_csv("expected_values.csv", index=False)
