@@ -4,8 +4,11 @@ from calculate_points import calculate_max_points
 from calculate_points import calculate_possible_points
 from calculate_expected_value import select_max_points
 
+from tqdm import tqdm
+
 if __name__ == "__main__":
-    n = 10
+    m = 100  # Number of entries in 'Expected Value' dataframe
+    n = 1_000  # Number of simulations per dice
     layer = -1
 
     if layer == 1:
@@ -56,39 +59,63 @@ if __name__ == "__main__":
             print(f"\u03bc{d} = " + str(point_sum / n))
 
     if layer == -1:
-        ev_base = {}
+        ev_df = pd.DataFrame(columns=[f"\u03bc{d}" for d in range(1, 7)])
+
+        ev_row = []
         for d in range(1, 7):
             rolls = pd.read_csv(f"rolls\\{d}_dice_rolls.csv")
-            ev_base[d] = (rolls["points"] * rolls["probability"]).sum()
+            ev_row += [(rolls["points"] * rolls["probability"]).sum()]
+        ev_df.loc[0] = ev_row
 
-        for d in range(1, 7):
-            point_sum = 0
-            for _ in range(n):
-                round_points = 0  # Initial state
-                reroll = True
-                num_dice = d
+        with tqdm(total=6 * m - 6) as pbar:
+            for i in range(1, m):
+                ev_row = []
+                for d in range(1, 7):
+                    point_sum = 0
+                    for _ in range(n):
+                        round_points = 0  # Initial state
+                        reroll = True
+                        num_dice = d
 
-                while reroll:
-                    roll = np.random.choice(6, num_dice) + np.ones(num_dice)
-                    print("Roll: " + str(roll))
-                    if calculate_max_points(roll)[0] == 0:  # If farkle
-                        round_points = 0
-                        print("\tFarkle!\n")
-                        break
+                        #
+                        # c = 0
+                        # print_str = ""
+                        #
+                        while reroll:
+                            roll = np.random.choice(6, num_dice) + np.ones(num_dice)
+                            #
+                            # c += 1
+                            # print_str += "Roll: " + str(roll) + "\n"
+                            #
+                            if calculate_max_points(roll)[0] == 0:  # If farkle
+                                round_points = 0
+                                #
+                                # print_str += "\tFarkle!\n\n"
+                                # if c > 3:
+                                #     print(print_str)
+                                #
+                                break
 
-                    possible_points = calculate_possible_points(roll)
-                    roll_choice = select_max_points(
-                        possible_points, ev_base, round_points
-                    )  # Optimal
-                    print("\t" + str(roll_choice))
+                            possible_points = calculate_possible_points(roll)
+                            roll_choice = select_max_points(
+                                possible_points, ev_df.loc[i-1], round_points
+                            )  # Optimal
 
-                    round_points += roll_choice[0]  # Add selected points to round total
-                    num_dice = roll_choice[1]
-                    reroll = roll_choice[2]
+                            round_points += roll_choice[
+                                0
+                            ]  # Add selected points to round total
+                            num_dice = roll_choice[1]
+                            reroll = roll_choice[2]
+                            #
+                            # print_str += "\t" + str(roll_choice) + "\n"
+                            # if not reroll and c > 3:
+                            #     print(print_str)
+                            #
 
-                    if not reroll:
-                        print()
+                        point_sum += round_points
 
-                point_sum += round_points
-
-            print(f"\u03bc{d} = " + str(point_sum / n))
+                    ev_row += [point_sum / n]
+                    pbar.update(1)
+                ev_df.loc[i] = ev_row
+        
+        ev_df.to_csv('expected_values.csv', index=False)

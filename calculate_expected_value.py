@@ -8,7 +8,7 @@ def select_max_points(possible_points, ev_base, round_points):
 
     max_roll = 0
     for points, remaining_dice in possible_points:
-        ev_roll = points + ev_base[remaining_dice]
+        ev_roll = points + ev_base[f"\u03bc{remaining_dice}"]
 
         if ev_roll > max_roll:
             selected_points = points
@@ -16,7 +16,7 @@ def select_max_points(possible_points, ev_base, round_points):
             max_roll = ev_roll
 
     reroll = False
-    if ev_base[selected_remaining_dice] > round_points + selected_points:
+    if ev_base[f"\u03bc{selected_remaining_dice}"] > round_points + selected_points:
         reroll = True
         round_points += max_roll
     else:
